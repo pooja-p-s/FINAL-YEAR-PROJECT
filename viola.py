@@ -1,7 +1,7 @@
 import streamlit as st
 import cv2
 from common import *
-
+from dataprocess import *
 def cropface(img,cropx,cropy):
     y,x = img.shape
     startx = x//2-(cropx//2)
@@ -48,4 +48,5 @@ def find_viola(img):
         faces = cv2.resize(faces, (41,41), interpolation = cv2.INTER_AREA)
         #print(faces.shape[0],faces.shape[1])
         cv2.imwrite('/Users/poojaps/Desktop/project/sampleviola.png', faces) 
-        st.image(faces)   
+      
+    return faces

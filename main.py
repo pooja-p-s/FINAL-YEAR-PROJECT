@@ -1,7 +1,9 @@
 from dataclasses import dataclass
 from re import L
-import cv2
+import cv2 as cv2
 import math
+import pickle
+import pandas
 import psutil
 import time
 import itertools
@@ -10,7 +12,9 @@ import resource
 from PIL import Image
 import streamlit as st
 from sklearn import svm
-from sklearn.svm import LinearSVC,SVC
+from sklearn.svm import LinearSVC
+from sklearn.metrics import precision_recall_fscore_support as score
+from sklearn.metrics import accuracy_score
 from sklearn.metrics import classification_report,confusion_matrix,plot_confusion_matrix, plot_roc_curve, plot_precision_recall_curve, precision_score, recall_score
 from sklearn.model_selection import train_test_split
 from libsvm import *
@@ -19,13 +23,12 @@ from viola import *
 from lbp import *
 from dct import *
 from common import *
-from fplbp import *
+from matlbp import *
+from dataprocess import  *
 from tplbp import *
+from capture import *
 
-
-option = 0
-
-def train_test(data,labels): 
+def train_test(data,labels,modelname): 
     #svm
     
     lsvc = LinearSVC(penalty='l2', loss='squared_hinge', 
@@ -35,32 +38,32 @@ def train_test(data,labels):
                      max_iter=1000)
     #split 80-20
     xtrain,xtest,ytrain,ytest = train_test_split(data,labels,random_state=109,train_size=0.8) 
+    st.write('Testing...')
     
     lsvc.fit(xtrain,ytrain)
-
+    # save the model to disk
+    filename = "/Users/poojaps/Desktop/project/models/" + modelname + ".sav"
+    
+    pickle.dump(lsvc, open(filename, 'wb'))
     #train
     ypred = lsvc.predict(xtest)
     cm = confusion_matrix(ytest, ypred)
-
-    
-    st.header("CONFUSION MATRIX")
+    st.header("CONFUSION MATRIX") 
     st.write(cm)
-    st.write(classification_report(ytest, ypred))
     report = classification_report(ytest, ypred, output_dict=True )
-    st.header("CLASSIFICATION REPORT")
+    st.header("CLASSIFICATION REPORT") 
+    print(classification_report(ytest, ypred))
     
-    st.table(dict(list(report.items())[:7]))
-    st.table(dict(list(report.items())[7:]))
+    st.table((dict(list(report.items())[:7])))
+    classifier_predictions = lsvc.predict(xtest)
+    acc = "{:.2f}".format(accuracy_score(ytest, classifier_predictions)*100)
+    st.write('**Accuracy** : ',acc,'%')
     return lsvc
     
 def freq_lbp():
     viola(datatset_folders)
-    matlabfdlbp()
+    fdlbp()
     return do_dct(fd_lbp)
-
-def spa_lbp():
-    viola(datatset_folders)
-    return sdlbp(viola_folder)
 
 def freq_tp():
     viola(datatset_folders)
@@ -72,24 +75,31 @@ def freq_fp():
     fdfplbp()
     return do_dct(fp_folders) 
 
+def spa_lbp():
+    viola(datatset_folders)
+    sdlbp()
+    return spatial_data(viola_folder,1)
+
 def spa_tplbp():
     viola(datatset_folders)
     sdtplbp()
-    return sdlbp(viola_folder)
+    return spatial_data(viola_folder,2)
+
 def spa_fplbp():
     viola(datatset_folders)
-    sdtplbp()
-    return sdlbp(viola_folder)
-       
-st.title("FACIAL EMOTION DETECTION MODELS -  STUDY")
+    sdfplbp()
+    return spatial_data(viola_folder,3)
 
-uploaded_file = st.file_uploader("Choose an image file", type=[".png",".jpg",".jpeg"])
+def spa_feature_fusion():
+    d1,l1 = spa_tplbp()  
+    d2,l2 = spa_fplbp() 
+    st.write(len(d1),len(l1))
+    st.write(len(d2),len(l2)) 
+    data =  data_fusion(d1,d2)
+    return data,l1
+    
+st.title("FACIAL EMOTION RECOGNITION STUDY OF SPATIAL AND FREQUENCY DOMAIN MODELS")
 
-if uploaded_file is not None:
-    # Convert the file to an opencv image.
-    file_bytes = np.asarray(bytearray(uploaded_file.read()), dtype=np.uint8)
-    img = cv2.imdecode(file_bytes, 1)
-        
 with st.form("choose_model"):
     domain = ["Spatial Domain","Frequency Domain"] 
     d = st.radio("Domain",domain)
@@ -106,90 +116,55 @@ if submitted:
     start_time = time.time()
     data=[]
     labels=[]
+    st.write('Training...')
     if d=="Spatial Domain":
-        st.write("Spatial Domain")
         if fd=="Local Binary Pattern (LBP)":
             option = 10
-            st.write("LBP")
+            st.write("Spatial Domain using LBP")
             data,labels = spa_lbp()
+            modelname = "SDLBP"
         elif fd=="Three Patch LBP":
             option = 11
-            st.write("TPLBP")
+            st.write("Spatial Domain using TPLBP")
             data,labels = spa_tplbp()
+            modelname = "SDTPLBP"
         elif fd=="Four Patch LBP":
             option = 12
-            st.write("FPLBP")
+            st.write("Spatial Domain using FPLBP")
             data,labels = spa_fplbp()
+            modelname = "SDFPLBP"
         else:
             option = 13
-            st.write("TPLBP+FPLBP")
-            
+            st.write("Spatial Domain using fusion of TPLBP & FPLBP")
+            data,labels = spa_feature_fusion()
+            modelname = "SDFUSION"
+             
     else:
-        st.write("Frequency Domain")
         if fd=="Local Binary Pattern (LBP)":
             option = 20
-            st.write("LBP")
+            st.write("Frequency Domain using LBP")
             data,labels = freq_lbp()
+            modelname = "FDLBP"
         elif fd=="Three Patch LBP":
             option = 21
-            st.write("TPLBP")
+            st.write("Frequency Domain using TPLBP")
             data,labels = freq_tp()
+            modelname = "FDTPLBP"
         elif fd=="Four Patch LBP":
             option = 22
-            st.write("FPLBP")
+            st.write("Frequency Domain using FPLBP")
             data,labels = freq_fp()
+            modelname = "FDFPLBP"
         else:
             option = 23
-            st.write("TPLBP+FPLBP")
+            st.write("using fusion of TPLBP & FPLBP")
             d1,l1 = freq_tp()
             d2,l2 = freq_fp()
             st.write(len(d1),len(l1))
             st.write(len(d2),len(l2))
-            #feature fusion
-            for i in range(981):
-                data.append(d1[i]+d2[i])
+            data = data_fusion(d1,d2)
             labels = l1
-    lsvc = train_test(data,labels)
-    st.write("Runtime for Train & Test : %s seconds" % (time.time() - start_time))
-    start_time = time.time()
-       
-    #vj
-    find_viola(img)
-    #lbp
-    if option==20:
-        #find_lbp()
-        #dct		
-        zz = find_dct()
-    elif option==21:
-        find_tplbp()
-        #dct		
-        zz = find_dct()
-    elif option==22:
-        find_fplbp()
-        #dct		
-        zz = find_dct()
-    elif option==23:
-        find_tplbp()
-        z1 = find_dct()
-        find_fplbp()
-        z2 = find_dct()
-        zz = z1+z2
-    #elif option==10:
-        #zz = find_sdlbp()
-    
+            modelname = "FDFUSION"
             
-
-            
-    #svm
-    #xval =[]
-    #xval.append(zz)
-    #yvalpred = lsvc.predict(xval)
-    #st.write("Predicted Emotion - ",yvalpred[0])   
-    #res = lsvc._predict_proba_lr(xval)
-    #for i in range(7):
-        #st.write(emo[i],":",res[0][i]*100)
-    #st.write("Runtime for uploaded image : %s seconds" % (time.time() - start_time))
-    #mb = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
-    #st.write("Memory usage - ",mb/1000000,"MB")
-    #gives a single float value
-    #st.write(psutil.cpu_percent())
+    lsvc = train_test(data,labels,modelname)
+    st.write("**Runtime for Training and Testing** : %s sec" % "{:.2f}".format((time.time() - start_time)))

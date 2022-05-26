@@ -1,7 +1,11 @@
 import os
 import cv2
 
-emo = ['Anger','Contempt','Disgust','Fear','Happy','Sadness','Surprise']
+emo = ["Anger","Contempt","Disgust","Fear","Happy","Sadness","Surprise"]
+sampleimghist = "/Users/poojaps/Desktop/project/samplehist.txt"
+sampleimghistfp = "/Users/poojaps/Desktop/project/samplehistfp.txt"
+sampleimghisttp = "/Users/poojaps/Desktop/project/samplehisttp.txt"
+
 datatset_folders = [ "/Users/poojaps/Desktop/project/CK+48/anger","/Users/poojaps/Desktop/project/CK+48/contempt",
            "/Users/poojaps/Desktop/project/CK+48/disgust","/Users/poojaps/Desktop/project/CK+48/fear",
            "/Users/poojaps/Desktop/project/CK+48/happy","/Users/poojaps/Desktop/project/CK+48/sadness",
@@ -25,19 +29,27 @@ fp_folders = ["/Users/poojaps/Desktop/project/fd/afterlbp-fp/anger","/Users/pooj
            "/Users/poojaps/Desktop/project/fd/afterlbp-fp/happy","/Users/poojaps/Desktop/project/fd/afterlbp-fp/sadness",
           "/Users/poojaps/Desktop/project/fd/afterlbp-fp/surprise" ]
 
-sd_lbp = ['/Users/poojaps/Desktop/project/sd/histogram/1.txt',
-          '/Users/poojaps/Desktop/project/sd/histogram/2.txt',
-          '/Users/poojaps/Desktop/project/sd/histogram/3.txt',
-          '/Users/poojaps/Desktop/project/sd/histogram/4.txt',
-          '/Users/poojaps/Desktop/project/sd/histogram/5.txt',
-          '/Users/poojaps/Desktop/project/sd/histogram/6.txt',
-          '/Users/poojaps/Desktop/project/sd/histogram/7.txt'
+hist_sd_lbp = ["/Users/poojaps/Desktop/project/sd/histogram-lbp/1.txt",
+          "/Users/poojaps/Desktop/project/sd/histogram-lbp/2.txt",
+          "/Users/poojaps/Desktop/project/sd/histogram-lbp/3.txt",
+          "/Users/poojaps/Desktop/project/sd/histogram-lbp/4.txt",
+          "/Users/poojaps/Desktop/project/sd/histogram-lbp/5.txt",
+          "/Users/poojaps/Desktop/project/sd/histogram-lbp/6.txt",
+          "/Users/poojaps/Desktop/project/sd/histogram-lbp/7.txt"
           ]
-def load_images_from_folder(folder):
-  images = []
-  for filename in os.listdir(folder):
-     if any([filename.endswith(x) for x in ['.jpeg', '.jpg','.png']]):
-        img = cv2.imread(os.path.join(folder, filename))
-        if img is not None:
-            images.append(img)
-  return images
+hist_sd_tplbp = ['/Users/poojaps/Desktop/project/sd/histogram-tplbp/1.txt',
+          '/Users/poojaps/Desktop/project/sd/histogram-tplbp/2.txt',
+          '/Users/poojaps/Desktop/project/sd/histogram-tplbp/3.txt',
+          '/Users/poojaps/Desktop/project/sd/histogram-tplbp/4.txt',
+          '/Users/poojaps/Desktop/project/sd/histogram-tplbp/5.txt',
+          '/Users/poojaps/Desktop/project/sd/histogram-tplbp/6.txt',
+          '/Users/poojaps/Desktop/project/sd/histogram-tplbp/7.txt'
+          ]
+hist_sd_fplbp = ['/Users/poojaps/Desktop/project/sd/histogram-fplbp/1.txt',
+          '/Users/poojaps/Desktop/project/sd/histogram-fplbp/2.txt',
+          '/Users/poojaps/Desktop/project/sd/histogram-fplbp/3.txt',
+          '/Users/poojaps/Desktop/project/sd/histogram-fplbp/4.txt',
+          '/Users/poojaps/Desktop/project/sd/histogram-fplbp/5.txt',
+          '/Users/poojaps/Desktop/project/sd/histogram-fplbp/6.txt',
+          '/Users/poojaps/Desktop/project/sd/histogram-fplbp/7.txt'
+          ]

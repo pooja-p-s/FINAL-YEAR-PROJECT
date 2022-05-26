@@ -2,6 +2,7 @@ import cv2
 import streamlit as st
 from scipy.fftpack import dct, idct
 from common import *
+from dataprocess import *
 
 def dct2(a):
     return dct(dct(a.T, norm='ortho').T, norm='ortho')
@@ -60,10 +61,12 @@ def do_dct(folders):
     return data,labels
 
 def find_dct():
+    zz=[]
     img = cv2.imread('/Users/poojaps/Desktop/project/samplelbp.png')
     img_gr = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     imdct = dct2(img_gr)
     filename = '/Users/poojaps/Desktop/project/sampledct.png'			
     cv2.imwrite(filename, imdct)
-    zz = zigzagfunc(imdct)
+    zzvector = zigzagfunc(imdct)
+    zz.append(zzvector)
     return zz

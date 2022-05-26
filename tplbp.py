@@ -14,10 +14,3 @@ def sdtplbp():
     eng.callSDTPLBP(nargout=0)
     eng.quit()
 
-def find_tplbp():
-    positionOfPath = 1
-    sys.path.insert( positionOfPath, '/Users/poojaps/Documents/MATLAB' )
-    eng = matlab.engine.start_matlab()
-    eng.singleTP(nargout=0)
-    eng.quit()
-    
